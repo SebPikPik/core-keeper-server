@@ -48,7 +48,6 @@ jobs:
             apt purge -y steamcmd && rm -rf /home/.steam/ && apt install -y steamcmd
             id -u corekeeper-server &>/dev/null || useradd -mrU -s /usr/sbin/nologin corekeeper-server
             id -u ckserver &>/dev/null || useradd -p $CKPASS -m -s /bin/bash ckserver
-            cd /home/ckserver && sudo -u ckserver curl -Lo linuxgsm.sh https://linuxgsm.sh && chmod +x linuxgsm.sh && bash linuxgsm.sh ckserver && ./ckserver install
   scp_files:
     needs: configure
     runs-on: ubuntu-latest
@@ -122,6 +121,7 @@ jobs:
           username: ckserver
           port: ${{ secrets.PORT }}
           password: ${{ secrets.CKSECRET }}
+          debug: true
           script: |
             cd ~/
             curl -Lo linuxgsm.sh https://linuxgsm.sh
