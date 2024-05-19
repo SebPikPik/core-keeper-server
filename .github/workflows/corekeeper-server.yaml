@@ -28,7 +28,7 @@ jobs:
     - name: ssh deploy corekeeper-server.service 
       uses: easingthemes/ssh-deploy@v5.0.3
       with:
-        SSH_PRIVATE_KEY: ${{ secrets.ROOT_KEY }}
+        SSH_PRIVATE_KEY: ${{ secrets.ROOT_RSA_KEY }}
         ARGS: "-rlgoDzvc -i"
         SOURCE: "corekeeper-server.service"
         REMOTE_PORT: ${{ secrets.PORT }}
@@ -49,7 +49,7 @@ jobs:
     - name: ssh deploy ServerConfig.json
       uses: easingthemes/ssh-deploy@v5.0.3
       with:
-        SSH_PRIVATE_KEY: ${{ secrets.KEY }}
+        SSH_PRIVATE_KEY: ${{ secrets.RSA_KEY }}
         ARGS: "-rlgoDzvc -i"
         SOURCE: "ServerConfig.json"
         REMOTE_PORT: ${{ secrets.PORT }}
