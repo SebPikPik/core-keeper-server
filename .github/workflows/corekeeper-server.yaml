@@ -70,7 +70,7 @@ jobs:
           key: ${{ secrets.ROOT_KEY }}
           # source: "tests/a.txt,tests/b.txt"
           source: "corekeeper-server.service"
-          target: /etc/systemd/system/corekeeper-server.service
+          target: /etc/systemd/system/
   
       - name: "copy file ServerConfig.json via ssh key"
         uses: appleboy/scp-action@v0.1.7
@@ -81,7 +81,7 @@ jobs:
           key: ${{ secrets.ROOT_KEY }}
           # source: "tests/a.txt,tests/b.txt"
           source: "ServerConfig.json"
-          target: "/home/steam/.config/unity3d/Pugstorm/Core Keeper/DedicatedServer/ServerConfig.json"
+          target: "/home/steam/.config/unity3d/Pugstorm/Core Keeper/DedicatedServer/"
 
   launch_server:
     needs: scp_files
