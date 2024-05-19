@@ -115,15 +115,16 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - name: "Install requirements"
+      - name: "Install LGSM server"
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          CKPASS: ${{ secrets.CKSECRET }}
         with:
           host: ${{ secrets.HOST }}
           username: ckserver
           port: ${{ secrets.PORT }}
           password: ${{ secrets.CKSECRET }}
-          envs: FOO,BAR,SHA
           script: |
-            cd ~/ && curl -Lo linuxgsm.sh https://linuxgsm.sh && chmod +x linuxgsm.sh && bash linuxgsm.sh ckserver && ./ckserver install
+            cd ~/
+            curl -Lo linuxgsm.sh https://linuxgsm.sh
+            chmod +x linuxgsm.sh
+            bash linuxgsm.sh ckserver
+            ./ckserver install
