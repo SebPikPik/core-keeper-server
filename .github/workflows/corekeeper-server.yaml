@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  label:
+  deploy:
 
     runs-on: ubuntu-latest
     permissions:
