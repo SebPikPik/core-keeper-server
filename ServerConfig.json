@@ -1,0 +1,11 @@
+{
+   "gameId": "",
+   "world": 0,
+   "worldName": "Bikininjas",
+   "worldSeed": 0,
+   "maxNumberPlayers": 10,
+   "maxNumberPacketsSentPerFrame": 1,
+   "networkSendRate": 30,
+   "worldMode": 0,
+   "seasonOverride": -1
+}

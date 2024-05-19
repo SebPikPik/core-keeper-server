@@ -23,7 +23,28 @@ jobs:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
     - name: Checkout
       uses: actions/checkout@v4
-      - name: pass environment
+    - name: "copy file corekeeper-server.service via ssh key"
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.ADMIN }}
+        port: ${{ secrets.PORT }}
+        key: ${{ secrets.ROOT_KEY }}
+        # source: "tests/a.txt,tests/b.txt"
+        source: "corekeeper-server.service"
+        target: /etc/systemd/system/corekeeper-server.service
+
+    - name: "copy file ServerConfig.json via ssh key"
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.ADMIN }}
+        port: ${{ secrets.PORT }}
+        key: ${{ secrets.KEY }}
+        # source: "tests/a.txt,tests/b.txt"
+        source: "ServerConfig.json"
+        target: "/home/steam/.config/unity3d/Pugstorm/Core Keeper/DedicatedServer/ServerConfig.json"
+    - name: "Install server, service and launch it"
       uses: appleboy/ssh-action@v1.0.3
       env:
         FOO: "BAR"
@@ -39,10 +60,11 @@ jobs:
           echo "I am $FOO"
           echo "I am $BAR"
           echo "sha: $SHA"
+          systemctl daemon-reload && systemctl enable corekeeper-server.service
           apt-get update && apt-get upgrade && useradd -mrU -s /usr/sbin/nologin corekeeper-server
           sudo add-apt-repository multiverse; sudo dpkg --add-architecture i386; sudo apt update
           sudo apt install steamcmd
           sudo -u corekeeper-server -s /bin/bash -c "steamcmd +force_install_dir /home/corekeeper-server +login anonymous +app_update 1007 validate +app_update 1963720 validate +quit"
-          vim /etc/systemd/system/corekeeper-server.service
+          systemctl start corekeeper-server.service
 
         
