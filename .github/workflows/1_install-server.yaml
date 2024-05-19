@@ -46,7 +46,8 @@ jobs:
             echo steam steam/question select "I AGREE" | sudo debconf-set-selections
             echo steam steam/license note '' | sudo debconf-set-selections
             apt purge -y steamcmd && rm -rf /home/.steam/ /home/steam/ && apt install -y steamcmd
-            userdel corekeeper-server ckserver
+            userdel -r -f corekeeper-server
+            userdel -r -f ckserver
             id -u corekeeper-server &>/dev/null || useradd -mrU -s /usr/sbin/nologin corekeeper-server
             id -u ckserver &>/dev/null || useradd -p $CKPASS -m -s /bin/bash ckserver
   scp_files:
