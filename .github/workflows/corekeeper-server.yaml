@@ -1,0 +1,48 @@
+# This workflow will triage pull requests and apply a label based on the
+# paths that are modified in the pull request.
+#
+# To use this workflow, you will need to set up a .github/labeler.yml
+# file with configuration.  For more information, see:
+# https://github.com/actions/labeler
+
+name: CoreKeeper server deployment
+on: 
+  workflow_dispatch:
+
+jobs:
+  label:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+    - uses: actions/labeler@v4
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+    - name: Checkout
+      uses: actions/checkout@v4
+      - name: pass environment
+      uses: appleboy/ssh-action@v1.0.3
+      env:
+        FOO: "BAR"
+        BAR: "FOO"
+        SHA: ${{ github.sha }}
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        port: ${{ secrets.PORT }}
+        envs: FOO,BAR,SHA
+        script: |
+          echo "I am $FOO"
+          echo "I am $BAR"
+          echo "sha: $SHA"
+          apt-get update && apt-get upgrade && useradd -mrU -s /usr/sbin/nologin corekeeper-server
+          sudo add-apt-repository multiverse; sudo dpkg --add-architecture i386; sudo apt update
+          sudo apt install steamcmd
+          sudo -u corekeeper-server -s /bin/bash -c "steamcmd +force_install_dir /home/corekeeper-server +login anonymous +app_update 1007 validate +app_update 1963720 validate +quit"
+          vim /etc/systemd/system/corekeeper-server.service
+
+        
