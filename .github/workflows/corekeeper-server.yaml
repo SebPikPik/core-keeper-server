@@ -30,6 +30,8 @@ jobs:
       contents: read
       pull-requests: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: ssh deploy corekeeper-server.service 
         uses: easingthemes/ssh-deploy@v5.0.3
         with:
@@ -88,6 +90,8 @@ jobs:
       contents: read
       pull-requests: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: "copy file corekeeper-server.service via ssh key"
         uses: appleboy/scp-action@v0.1.7
         with:
