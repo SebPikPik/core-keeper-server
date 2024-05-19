@@ -48,7 +48,7 @@ jobs:
             add-apt-repository multiverse; dpkg --add-architecture i386; apt update
             systemctl daemon-reload && systemctl enable corekeeper-server.service
             apt-get update && apt-get upgrade && apt install steamcmd
-            useradd -mrU -s /usr/sbin/nologin corekeeper-server
+            id -u corekeeper-server &>/dev/null || useradd -mrU -s /usr/sbin/nologin corekeeper-server
   scp_files:
     needs: configure
     runs-on: ubuntu-latest
