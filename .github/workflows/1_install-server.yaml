@@ -33,6 +33,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         env:
           CKPASS: ${{ secrets.CKSECRET }}
+          EMAIL: ${{ secrets.EMAIL }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.ADMIN }}
@@ -48,6 +49,8 @@ jobs:
             apt purge -y steamcmd && rm -rf /home/.steam/ /home/steam/ && apt install -y steamcmd
             id -u corekeeper-server &>/dev/null || useradd -mrU -s /usr/sbin/nologin corekeeper-server
             id -u ckserver &>/dev/null || useradd -p $CKPASS -m -s /bin/bash ckserver
+            sudo -u ckserver ssh-keygen -f /home/ckserver/.ssh/id_ed25519 -t ed25519 -a 200 -C "$EMAIL" -q -P ""
+
   scp_files:
     needs: configure
     runs-on: ubuntu-latest
