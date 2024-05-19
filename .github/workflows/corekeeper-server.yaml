@@ -74,9 +74,9 @@ jobs:
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
+          username: ${{ secrets.ADMIN }}
           port: ${{ secrets.PORT }}
-          key: ${{ secrets.KEY }}
+          key: ${{ secrets.ROOT_KEY }}
           # source: "tests/a.txt,tests/b.txt"
           source: "ServerConfig.json"
           target: "/home/steam/.config/unity3d/Pugstorm/Core Keeper/DedicatedServer/ServerConfig.json"
