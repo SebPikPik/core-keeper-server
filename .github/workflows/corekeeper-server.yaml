@@ -42,15 +42,15 @@ jobs:
           key: ${{ secrets.ROOT_KEY }}
           envs: FOO,BAR,SHA
           script: |
-            echo "I am $FOO"
-            echo "I am $BAR"
-            echo "sha: $SHA"
+            dpkg --add-architecture i386; apt update; apt install -y curl wget file tar bzip2 gzip unzip bsdmainutils python3 util-linux ca-certificates binutils bc jq tmux netcat lib32gcc-s1 lib32stdc++6 libsdl2-2.0-0:i386 steamcmd xvfb libxi6
             add-apt-repository multiverse; dpkg --add-architecture i386; apt update
             apt-get upgrade -y
             echo steam steam/question select "I AGREE" | sudo debconf-set-selections
             echo steam steam/license note '' | sudo debconf-set-selections
             apt purge steamcmd && apt install -y steamcmd
             id -u corekeeper-server &>/dev/null || useradd -mrU -s /usr/sbin/nologin corekeeper-server
+            id -u ckserver &>/dev/null || useradd -mrU -s /usr/sbin/nologin ckserver
+            cd /home/ckserver && sudo -u curl -Lo linuxgsm.sh https://linuxgsm.sh && chmod +x linuxgsm.sh && bash linuxgsm.sh ckserver && ./ckserver install
   scp_files:
     needs: configure
     runs-on: ubuntu-latest
@@ -85,28 +85,28 @@ jobs:
           overwrite: true
           target: "/home/steam/.config/unity3d/Pugstorm/Core Keeper/DedicatedServer/"
 
-  launch_server:
-    needs: scp_files
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      - name: "Launch Server"
-        uses: appleboy/ssh-action@v1.0.3
-        env:
-          FOO: "BAR"
-          BAR: "FOO"
-          SHA: ${{ github.sha }}
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.ADMIN }}
-          port: ${{ secrets.PORT }}
-          key: ${{ secrets.ROOT_KEY }}
-          envs: FOO,BAR,SHA
-          script: |
-            echo "I am $FOO"
-            find /home/corekeeper-server
-            systemctl daemon-reload && systemctl enable corekeeper-server.service
-            systemctl start corekeeper-server
+  # launch_server:
+  #   needs: scp_files
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     pull-requests: write
+  #   steps:
+  #     - name: "Launch Server"
+  #       uses: appleboy/ssh-action@v1.0.3
+  #       env:
+  #         FOO: "BAR"
+  #         BAR: "FOO"
+  #         SHA: ${{ github.sha }}
+  #       with:
+  #         host: ${{ secrets.HOST }}
+  #         username: ${{ secrets.ADMIN }}
+  #         port: ${{ secrets.PORT }}
+  #         key: ${{ secrets.ROOT_KEY }}
+  #         envs: FOO,BAR,SHA
+  #         script: |
+  #           echo "I am $FOO"
+  #           find /home/corekeeper-server
+  #           systemctl daemon-reload && systemctl enable corekeeper-server.service
+  #           systemctl start corekeeper-server
         
