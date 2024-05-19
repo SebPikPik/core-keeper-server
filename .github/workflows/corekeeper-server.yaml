@@ -70,6 +70,7 @@ jobs:
           key: ${{ secrets.ROOT_KEY }}
           # source: "tests/a.txt,tests/b.txt"
           source: "corekeeper-server.service"
+          overwrite: true
           target: /etc/systemd/system/
   
       - name: "copy file ServerConfig.json via ssh key"
@@ -81,6 +82,7 @@ jobs:
           key: ${{ secrets.ROOT_KEY }}
           # source: "tests/a.txt,tests/b.txt"
           source: "ServerConfig.json"
+          overwrite: true
           target: "/home/steam/.config/unity3d/Pugstorm/Core Keeper/DedicatedServer/"
 
   launch_server:
