@@ -45,7 +45,7 @@ jobs:
             apt-get upgrade -y
             echo steam steam/question select "I AGREE" | sudo debconf-set-selections
             echo steam steam/license note '' | sudo debconf-set-selections
-            apt purge -y steamcmd && rm -rf /home/.steam/ && apt install -y steamcmd
+            apt purge -y steamcmd && rm -rf /home/.steam/ /home/steam/ && apt install -y steamcmd
             userdel corekeeper-server ckserver
             id -u corekeeper-server &>/dev/null || useradd -mrU -s /usr/sbin/nologin corekeeper-server
             id -u ckserver &>/dev/null || useradd -p $CKPASS -m -s /bin/bash ckserver
@@ -81,7 +81,7 @@ jobs:
           # source: "tests/a.txt,tests/b.txt"
           source: "ServerConfig.json"
           overwrite: true
-          target: "/home/steam/.config/unity3d/Pugstorm/Core Keeper/DedicatedServer/"
+          target: "/home/.steam/.config/unity3d/Pugstorm/Core Keeper/DedicatedServer/"
 
   # launch_server:
   #   needs: scp_files
@@ -121,7 +121,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ckserver
           port: ${{ secrets.PORT }}
-          password: ${{ secrets.CKSECRET }}
+          key: ${{ secrets.CK_KEY }}
           debug: true
           script: |
             cd ~/
