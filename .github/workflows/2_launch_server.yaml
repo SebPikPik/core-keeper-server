@@ -1,0 +1,32 @@
+# This workflow will triage pull requests and apply a label based on the
+# paths that are modified in the pull request.
+#
+# To use this workflow, you will need to set up a .github/labeler.yml
+# file with configuration.  For more information, see:
+# https://github.com/actions/labeler
+
+name: CoreKeeper server Launch
+on: 
+  workflow_dispatch:
+
+jobs:
+  launch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: "Launch LGSM Core Keeper"
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          CKPASS: ${{ secrets.CKSECRET }}
+        with:
+          host: ${{ secrets.HOST }}
+          username: ckserver
+          port: ${{ secrets.PORT }}
+          password: ${{ secrets.CKSECRET }}
+          envs: FOO,BAR,SHA
+          script: |
+            cd ~/
+            ./ckserver monitor
+            ./ckserver start

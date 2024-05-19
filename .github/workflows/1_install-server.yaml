@@ -32,9 +32,7 @@ jobs:
       - name: "Install requirements"
         uses: appleboy/ssh-action@v1.0.3
         env:
-          FOO: "BAR"
-          BAR: "FOO"
-          SHA: ${{ github.sha }}
+          CKPASS: ${{ secrets.CKSECRET }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.ADMIN }}
@@ -47,9 +45,9 @@ jobs:
             apt-get upgrade -y
             echo steam steam/question select "I AGREE" | sudo debconf-set-selections
             echo steam steam/license note '' | sudo debconf-set-selections
-            apt purge -y steamcmd && apt install -y steamcmd
+            apt purge -y steamcmd && rm -rf /home/.steam/ && apt install -y steamcmd
             id -u corekeeper-server &>/dev/null || useradd -mrU -s /usr/sbin/nologin corekeeper-server
-            id -u ckserver &>/dev/null || useradd -mrU -s /usr/sbin/nologin ckserver
+            id -u ckserver &>/dev/null || useradd -p $CKPASS -m -s /bin/bash ckserver
             cd /home/ckserver && sudo -u ckserver curl -Lo linuxgsm.sh https://linuxgsm.sh && chmod +x linuxgsm.sh && bash linuxgsm.sh ckserver && ./ckserver install
   scp_files:
     needs: configure
@@ -110,3 +108,22 @@ jobs:
   #           systemctl daemon-reload && systemctl enable corekeeper-server.service
   #           systemctl start corekeeper-server
         
+  install_lgsm:
+    needs: configure
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: "Install requirements"
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          CKPASS: ${{ secrets.CKSECRET }}
+        with:
+          host: ${{ secrets.HOST }}
+          username: ckserver
+          port: ${{ secrets.PORT }}
+          password: ${{ secrets.CKSECRET }}
+          envs: FOO,BAR,SHA
+          script: |
+            cd ~/ && curl -Lo linuxgsm.sh https://linuxgsm.sh && chmod +x linuxgsm.sh && bash linuxgsm.sh ckserver && ./ckserver install
