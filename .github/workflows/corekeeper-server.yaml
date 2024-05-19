@@ -10,8 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
-
+  configure:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,100 +23,114 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+  ssh-deploy:
+    needs: configure
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: ssh deploy corekeeper-server.service 
+        uses: easingthemes/ssh-deploy@v5.0.3
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.ROOT_RSA_KEY }}
+          ARGS: "-rlgoDzvc -i"
+          SOURCE: "corekeeper-server.service"
+          REMOTE_PORT: ${{ secrets.PORT }}
+          REMOTE_HOST: ${{ secrets.HOST }}
+          REMOTE_USER: ${{ secrets.ADMIN }}
+          TARGET: /etc/systemd/system/
+          # EXCLUDE: "/dist/, /node_modules/"
+          SCRIPT_BEFORE: |
+            whoami
+            apt-get update && apt-get upgrade -y && useradd -mrU -s /usr/sbin/nologin corekeeper-server
+            add-apt-repository multiverse; dpkg --add-architecture i386; apt update
+            apt install -y steamcmd
+            sudo -u corekeeper-server -s /bin/bash -c "steamcmd +force_install_dir /home/corekeeper-server +login anonymous +app_update 1007 validate +app_update 1963720 validate +quit"
+          SCRIPT_AFTER: |
+            whoami
+            systemctl daemon-reload && systemctl enable corekeeper-server.service
 
-    - name: ssh deploy corekeeper-server.service 
-      uses: easingthemes/ssh-deploy@v5.0.3
-      with:
-        SSH_PRIVATE_KEY: ${{ secrets.ROOT_RSA_KEY }}
-        ARGS: "-rlgoDzvc -i"
-        SOURCE: "corekeeper-server.service"
-        REMOTE_PORT: ${{ secrets.PORT }}
-        REMOTE_HOST: ${{ secrets.HOST }}
-        REMOTE_USER: ${{ secrets.ADMIN }}
-        TARGET: /etc/systemd/system/
-        # EXCLUDE: "/dist/, /node_modules/"
-        SCRIPT_BEFORE: |
-          whoami
-          apt-get update && apt-get upgrade -y && useradd -mrU -s /usr/sbin/nologin corekeeper-server
-          add-apt-repository multiverse; dpkg --add-architecture i386; apt update
-          apt install -y steamcmd
-          sudo -u corekeeper-server -s /bin/bash -c "steamcmd +force_install_dir /home/corekeeper-server +login anonymous +app_update 1007 validate +app_update 1963720 validate +quit"
-        SCRIPT_AFTER: |
-          whoami
-          systemctl daemon-reload && systemctl enable corekeeper-server.service
+      - name: ssh deploy ServerConfig.json
+        uses: easingthemes/ssh-deploy@v5.0.3
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.RSA_KEY }}
+          ARGS: "-rlgoDzvc -i"
+          SOURCE: "ServerConfig.json"
+          REMOTE_PORT: ${{ secrets.PORT }}
+          REMOTE_HOST: ${{ secrets.HOST }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
+          TARGET: /home/steam/.config/unity3d/Pugstorm/Core Keeper/DedicatedServer/
+          # EXCLUDE: "/dist/, /node_modules/"
+          SCRIPT_BEFORE: |
+            whoami
+            ls -la
+          SCRIPT_AFTER: |
+            whoami
+            ls -la
+      - name: ssh start corekeeper-server.service 
+        uses: easingthemes/ssh-deploy@v5.0.3
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.ROOT_KEY }}
+          # ARGS: "-rlgoDzvc -i"
+          REMOTE_PORT: ${{ secrets.PORT }}
+          REMOTE_HOST: ${{ secrets.HOST }}
+          REMOTE_USER: ${{ secrets.ADMIN }}
+          # EXCLUDE: "/dist/, /node_modules/"
+          SCRIPT_BEFORE: |
+            systemctl start corekeeper-server.service
 
-    - name: ssh deploy ServerConfig.json
-      uses: easingthemes/ssh-deploy@v5.0.3
-      with:
-        SSH_PRIVATE_KEY: ${{ secrets.RSA_KEY }}
-        ARGS: "-rlgoDzvc -i"
-        SOURCE: "ServerConfig.json"
-        REMOTE_PORT: ${{ secrets.PORT }}
-        REMOTE_HOST: ${{ secrets.HOST }}
-        REMOTE_USER: ${{ secrets.USERNAME }}
-        TARGET: /home/steam/.config/unity3d/Pugstorm/Core Keeper/DedicatedServer/
-        # EXCLUDE: "/dist/, /node_modules/"
-        SCRIPT_BEFORE: |
-          whoami
-          ls -la
-        SCRIPT_AFTER: |
-          whoami
-          ls -la
-    - name: ssh start corekeeper-server.service 
-      uses: easingthemes/ssh-deploy@v5.0.3
-      with:
-        SSH_PRIVATE_KEY: ${{ secrets.ROOT_KEY }}
-        # ARGS: "-rlgoDzvc -i"
-        REMOTE_PORT: ${{ secrets.PORT }}
-        REMOTE_HOST: ${{ secrets.HOST }}
-        REMOTE_USER: ${{ secrets.ADMIN }}
-        # EXCLUDE: "/dist/, /node_modules/"
-        SCRIPT_BEFORE: |
-          systemctl start corekeeper-server.service
 
-    # - name: "copy file corekeeper-server.service via ssh key"
-    #   uses: appleboy/scp-action@v0.1.7
-    #   with:
-    #     host: ${{ secrets.HOST }}
-    #     username: ${{ secrets.ADMIN }}
-    #     port: ${{ secrets.PORT }}
-    #     key: ${{ secrets.ROOT_KEY }}
-    #     # source: "tests/a.txt,tests/b.txt"
-    #     source: "corekeeper-server.service"
-    #     target: /etc/systemd/system/corekeeper-server.service
+  ssh-scp-action:
+    needs: configure
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: "copy file corekeeper-server.service via ssh key"
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.ADMIN }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.ROOT_KEY }}
+          # source: "tests/a.txt,tests/b.txt"
+          source: "corekeeper-server.service"
+          target: /etc/systemd/system/corekeeper-server.service
 
-    # - name: "copy file ServerConfig.json via ssh key"
-    #   uses: appleboy/scp-action@v0.1.7
-    #   with:
-    #     host: ${{ secrets.HOST }}
-    #     username: ${{ secrets.ADMIN }}
-    #     port: ${{ secrets.PORT }}
-    #     key: ${{ secrets.KEY }}
-    #     # source: "tests/a.txt,tests/b.txt"
-    #     source: "ServerConfig.json"
-    #     target: "/home/steam/.config/unity3d/Pugstorm/Core Keeper/DedicatedServer/ServerConfig.json"
+      - name: "copy file ServerConfig.json via ssh key"
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.ADMIN }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.KEY }}
+          # source: "tests/a.txt,tests/b.txt"
+          source: "ServerConfig.json"
+          target: "/home/steam/.config/unity3d/Pugstorm/Core Keeper/DedicatedServer/ServerConfig.json"
 
-    # - name: "Install server, service and launch it"
-    #   uses: appleboy/ssh-action@v1.0.3
-    #   env:
-    #     FOO: "BAR"
-    #     BAR: "FOO"
-    #     SHA: ${{ github.sha }}
-    #   with:
-    #     host: ${{ secrets.HOST }}
-    #     username: ${{ secrets.USERNAME }}
-    #     key: ${{ secrets.KEY }}
-    #     port: ${{ secrets.PORT }}
-    #     envs: FOO,BAR,SHA
-    #     script: |
-    #       echo "I am $FOO"
-    #       echo "I am $BAR"
-    #       echo "sha: $SHA"
-    #       systemctl daemon-reload && systemctl enable corekeeper-server.service
-    #       apt-get update && apt-get upgrade && useradd -mrU -s /usr/sbin/nologin corekeeper-server
-    #       sudo add-apt-repository multiverse; sudo dpkg --add-architecture i386; sudo apt update
-    #       sudo apt install steamcmd
-    #       sudo -u corekeeper-server -s /bin/bash -c "steamcmd +force_install_dir /home/corekeeper-server +login anonymous +app_update 1007 validate +app_update 1963720 validate +quit"
-    #       systemctl start corekeeper-server.service
+      - name: "Install server, service and launch it"
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          FOO: "BAR"
+          BAR: "FOO"
+          SHA: ${{ github.sha }}
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          envs: FOO,BAR,SHA
+          script: |
+            echo "I am $FOO"
+            echo "I am $BAR"
+            echo "sha: $SHA"
+            systemctl daemon-reload && systemctl enable corekeeper-server.service
+            apt-get update && apt-get upgrade && useradd -mrU -s /usr/sbin/nologin corekeeper-server
+            sudo add-apt-repository multiverse; sudo dpkg --add-architecture i386; sudo apt update
+            sudo apt install steamcmd
+            sudo -u corekeeper-server -s /bin/bash -c "steamcmd +force_install_dir /home/corekeeper-server +login anonymous +app_update 1007 validate +app_update 1963720 validate +quit"
+            systemctl start corekeeper-server.service
 
         
