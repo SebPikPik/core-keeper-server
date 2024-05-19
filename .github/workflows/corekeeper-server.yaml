@@ -47,7 +47,6 @@ jobs:
             echo "sha: $SHA"
             add-apt-repository multiverse; dpkg --add-architecture i386; apt update
             apt-get upgrade -y
-            systemctl daemon-reload && systemctl enable corekeeper-server.service
             echo steam steam/question select "I AGREE" | sudo debconf-set-selections
             echo steam steam/license note '' | sudo debconf-set-selections
             apt purge steamcmd && apt install -y steamcmd
@@ -106,5 +105,6 @@ jobs:
           script: |
             echo "I am $FOO"
             find /home/corekeeper-server
-            systemctl start corekeeper-server.service
+            systemctl daemon-reload && systemctl enable corekeeper-server.service
+            systemctl start corekeeper-server
         
