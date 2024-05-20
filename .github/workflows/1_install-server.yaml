@@ -111,7 +111,7 @@ jobs:
   #           systemctl start corekeeper-server
         
   install_lgsm:
-    needs: configure
+    needs: requirements
     runs-on: ubuntu-latest
     permissions:
       contents: read
