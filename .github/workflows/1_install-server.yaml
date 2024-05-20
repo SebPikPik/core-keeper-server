@@ -123,8 +123,8 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ckserver
           port: ${{ secrets.PORT }}
-          # key: ${{ secrets.CK_KEY }}
-          password: ${{ secrets.CKSECRET }}
+          key: ${{ secrets.CK_KEY }}
+          # password: ${{ secrets.CKSECRET }}
           debug: 
           script: |
             cd ~/
