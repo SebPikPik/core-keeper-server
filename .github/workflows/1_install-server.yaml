@@ -48,8 +48,7 @@ jobs:
             echo steam steam/license note '' | sudo debconf-set-selections
             apt purge -y steamcmd && rm -rf /home/.steam/ /home/steam/ && apt install -y steamcmd
             id -u corekeeper-server &>/dev/null || useradd -mrU -s /usr/sbin/nologin corekeeper-server
-            id -u ckserver &>/dev/null || useradd -p $CKPASS -m -s /bin/bash ckserver
-            sudo -u ckserver ssh-keygen -f /home/ckserver/.ssh/id_ed25519 -t ed25519 -a 200 -C "$EMAIL" -q -P ""
+            id -u ckserver &>/dev/null || useradd -p $CKPASS -m -s /bin/bash ckserver && sudo -u ckserver ssh-keygen -f /home/ckserver/.ssh/id_ed25519 -t ed25519 -a 200 -C "$EMAIL" -q -P ""
 
   scp_files:
     needs: requirements
