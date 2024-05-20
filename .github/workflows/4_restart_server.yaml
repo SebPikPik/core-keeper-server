@@ -29,5 +29,6 @@ jobs:
           script: |
             cd ~/
             ./ckserver monitor
+            ./ckserver update
             ./ckserver restart
             

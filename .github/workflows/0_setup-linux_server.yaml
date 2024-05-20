@@ -1,0 +1,52 @@
+# This workflow will triage pull requests and apply a label based on the
+# paths that are modified in the pull request.
+#
+# To use this workflow, you will need to set up a .github/labeler.yml
+# file with configuration.  For more information, see:
+# https://github.com/actions/labeler
+
+name: CoreKeeper server deployment
+on: 
+  workflow_dispatch:
+jobs:
+  configure:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+    - uses: actions/labeler@v4
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+    - name: Checkout
+      uses: actions/checkout@v4
+  firewall:
+    needs: configure
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: "Install firewall and rules"
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          CKPASS: ${{ secrets.CKSECRET }}
+          EMAIL: ${{ secrets.EMAIL }}
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.ADMIN }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.ROOT_KEY }}
+          envs: CKPASS,EMAIL
+          script: |
+            apt install -y ufw netdata
+            ufw default deny incoming
+            ufw default allow outgoing
+            ufw allow 10022 from 88.169.78.137
+            ufw allow 1234/tcp
+            ufw allow 1234/udp
+            ufw allow https
+            ufw allow from 88.169.78.137
+            ufw enable
+        

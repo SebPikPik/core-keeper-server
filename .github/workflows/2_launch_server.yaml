@@ -28,5 +28,6 @@ jobs:
           envs: FOO,BAR,SHA
           script: |
             cd ~/
+            ./ckserver update
             ./ckserver monitor
             ./ckserver start
