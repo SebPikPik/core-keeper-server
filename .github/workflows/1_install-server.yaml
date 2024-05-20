@@ -88,10 +88,32 @@ jobs:
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.ADMIN }}
+          # username: ${{ secrets.ADMIN }}
+          username: ckserver
           port: ${{ secrets.PORT }}
-          key: ${{ secrets.ROOT_KEY }}
+          key: ${{ secrets.CK_KEY }}
           # source: "tests/a.txt,tests/b.txt"
           source: "ServerConfig.json"
           overwrite: true
           target: "/home/ckserver/serverfiles/gamedata/ckserver/"
+
+  # perm_fix:
+  #   needs: scp_files
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     pull-requests: write
+  #   steps:
+  #     - name: "Fix perms"
+  #       uses: appleboy/ssh-action@v1.0.3
+  #       env:
+  #         CKPASS: ${{ secrets.CKSECRET }}
+  #         EMAIL: ${{ secrets.EMAIL }}
+  #       with:
+  #         host: ${{ secrets.HOST }}
+  #         username: ${{ secrets.ADMIN }}
+  #         port: ${{ secrets.PORT }}
+  #         key: ${{ secrets.ROOT_KEY }}
+  #         envs: CKPASS,EMAIL
+  #         script: |
+  #           chown -R ckserver:ckserver /home/ckserver/serverfiles/gamedata
