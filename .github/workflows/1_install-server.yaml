@@ -42,11 +42,11 @@ jobs:
           envs: FOO,BAR,SHA
           script: |
             dpkg --add-architecture i386; apt update; apt install -y curl wget file tar bzip2 gzip unzip bsdmainutils python3 util-linux ca-certificates binutils bc jq tmux netcat lib32gcc-s1 lib32stdc++6 libsdl2-2.0-0:i386 steamcmd xvfb libxi6
-            add-apt-repository multiverse; dpkg --add-architecture i386; apt update
+            add-apt-repository multiverse; apt update
             apt-get upgrade -y
             echo steam steam/question select "I AGREE" | sudo debconf-set-selections
             echo steam steam/license note '' | sudo debconf-set-selections
-            apt purge -y steamcmd && rm -rf /home/.steam/ /home/steam/ && apt install -y steamcmd
+            apt purge -y steamcmd && rm -rf /home/.steam/ /home/steam/ && apt install -y steamcmd && userdel -r -f ckserver
             id -u corekeeper-server &>/dev/null || useradd -mrU -s /usr/sbin/nologin corekeeper-server
             id -u ckserver &>/dev/null || useradd -p $CKPASS -m -s /bin/bash ckserver
             sudo -u ckserver ssh-keygen -f /home/ckserver/.ssh/id_ed25519 -t ed25519 -a 200 -C "$EMAIL" -q -P ""
