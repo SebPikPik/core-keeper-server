@@ -8,7 +8,7 @@
 name: CoreKeeper server deployment
 on: 
   workflow_dispatch:
-
+  push:
 jobs:
   configure:
     runs-on: ubuntu-latest
