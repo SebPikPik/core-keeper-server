@@ -41,11 +41,6 @@ jobs:
           envs: CKPASS,EMAIL
           script: |
             dpkg --add-architecture i386; apt update; apt install -y curl wget file tar bzip2 gzip unzip bsdmainutils python3 util-linux ca-certificates binutils bc jq tmux netcat lib32gcc-s1 lib32stdc++6 libsdl2-2.0-0:i386 steamcmd xvfb libxi6 binutils bsdmainutils bzip2 lib32gcc-s1 lib32stdc++6 libsdl2-2.0-0:i386 libxi6 pigz unzip xvfb
-            add-apt-repository multiverse; apt update
-            apt-get upgrade -y
-            echo steam steam/question select "I AGREE" | sudo debconf-set-selections
-            echo steam steam/license note '' | sudo debconf-set-selections
-            apt purge -y steamcmd && rm -rf /home/.steam/ /home/steam/ && apt install -y steamcmd
             id -u corekeeper-server &>/dev/null || useradd -mrU -s /usr/sbin/nologin corekeeper-server
             id -u ckserver &>/dev/null || useradd -p $CKPASS -m -s /bin/bash ckserver
             if [ ! -f /home/ckserver/.ssh/id_ed25519 ]; then sudo -u ckserver ssh-keygen -f /home/ckserver/.ssh/id_ed25519 -t ed25519 -a 200 -C "$EMAIL" -q -P "" && cat /home/ckserver/.ssh/id_ed25519.pub >> /home/ckserver/.ssh/authorized_keys; fi
@@ -95,24 +90,3 @@ jobs:
           source: "ServerConfig.json"
           overwrite: true
           target: "/home/ckserver/serverfiles/gamedata/ckserver/"
-
-  # perm_fix:
-  #   needs: scp_files
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: read
-  #     pull-requests: write
-  #   steps:
-  #     - name: "Fix perms"
-  #       uses: appleboy/ssh-action@v1.0.3
-  #       env:
-  #         CKPASS: ${{ secrets.CKSECRET }}
-  #         EMAIL: ${{ secrets.EMAIL }}
-  #       with:
-  #         host: ${{ secrets.HOST }}
-  #         username: ${{ secrets.ADMIN }}
-  #         port: ${{ secrets.PORT }}
-  #         key: ${{ secrets.ROOT_KEY }}
-  #         envs: CKPASS,EMAIL
-  #         script: |
-  #           chown -R ckserver:ckserver /home/ckserver/serverfiles/gamedata

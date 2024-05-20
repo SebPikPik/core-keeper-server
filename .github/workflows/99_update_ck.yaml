@@ -1,0 +1,25 @@
+name: CoreKeeper update
+on: 
+  workflow_dispatch:
+  schedule:
+    - cron: "* 3,9 * * *"
+jobs:
+  launch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: "UPDATE LGSM and Core Keeper server"
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          CKPASS: ${{ secrets.CKSECRET }}
+        with:
+          host: ${{ secrets.HOST }}
+          username: ckserver
+          port: ${{ secrets.PORT }}
+          password: ${{ secrets.CKSECRET }}
+          envs: FOO,BAR,SHA
+          script: |
+            cd ~/
+            ./ckserver update
