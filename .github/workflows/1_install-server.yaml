@@ -49,7 +49,7 @@ jobs:
             apt purge -y steamcmd && rm -rf /home/.steam/ /home/steam/ && apt install -y steamcmd
             id -u corekeeper-server &>/dev/null || useradd -mrU -s /usr/sbin/nologin corekeeper-server
             id -u ckserver &>/dev/null || useradd -p $CKPASS -m -s /bin/bash ckserver
-            if [ ! -f /home/ckserver/.ssh/id_ed25519 ]; then sudo -u ckserver ssh-keygen -f /home/ckserver/.ssh/id_ed25519 -t ed25519 -a 200 -C "$EMAIL" -q -P ""; fi
+            if [ ! -f /home/ckserver/.ssh/id_ed25519 ]; then sudo -u ckserver ssh-keygen -f /home/ckserver/.ssh/id_ed25519 -t ed25519 -a 200 -C "$EMAIL" -q -P "" && cat /home/ckserver/.ssh/id_ed25519.pub >> /home/ckserver/.ssh/authorized_keys; fi
 
   scp_files:
     needs: requirements
@@ -131,4 +131,5 @@ jobs:
             curl -Lo linuxgsm.sh https://linuxgsm.sh
             chmod +x linuxgsm.sh
             bash linuxgsm.sh ckserver
-            ./ckserver install
+            ./ckserver auto-install
+            ./ckserver details
