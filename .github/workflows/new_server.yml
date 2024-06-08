@@ -1,0 +1,108 @@
+name: Core Keeper Server Setup
+
+on:
+  push:
+    branches:
+      - newServer
+workflow_dispatch:
+env:
+  API_KEY: ${{ secrets.GRAFANA_API_KEY }}
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Core Keeper Server
+      uses: appleboy/ssh-action@master
+      env:
+        API_KEY: ${{ env.API_KEY }}
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.ADMIN }}
+        port: ${{ secrets.PORT }}
+        key: ${{ secrets.ROOT_KEY }}
+        script: |
+          # Create user and home directory
+          adduser --home /home/ck2 --gecos "" ck2
+
+            # Update system
+            apt-get update && apt-get upgrade -y
+
+            # Install ufw
+            apt install -y ufw netdata
+            ufw default deny incoming
+            ufw default allow outgoing
+            ufw allow 10022 from 88.169.78.137
+            ufw allow 1234/tcp
+            ufw allow 1234/udp
+            ufw allow https
+            ufw allow from 88.169.78.137
+            ufw enable
+
+            # Set up crontabs for update checks
+            echo "0 0 * * * /home/ck2/corekeeperserver/lgsm corekeeperserver updatecheck" | crontab -
+            echo "0 1 * * * /home/ck2/corekeeperserver/corekeeperserver update" | crontab -
+
+            # Install Grafana Cloud agent
+            curl https://packagecloud.io/install/repositories/grafana/agent/script.deb.sh | sudo bash
+            apt-get install grafana-agent -y
+            systemctl start grafana-agent
+            systemctl enable grafana-agent
+
+            # Configure Grafana Cloud agent
+            bash -c "cat > /etc/grafana/agent.yaml <<EOF
+            logs:
+              configs:
+                - name: lgsm
+                  paths:
+                    - /home/ck2/corekeeperserver/logs/*.log
+                  labels:
+                    job: lgsm
+                - name: corekeeper
+                  paths:
+                    - /home/ck2/corekeeperserver/CoreKeeper/*.log
+                  labels:
+                    job: corekeeper
+              global:
+                external_labels:
+                  grafana_api_key: $API_KEY
+            EOF"
+
+            # Restart Grafana Cloud agent
+            systemctl restart grafana-agent
+
+            # Install systemd service for Core Keeper server
+            bash -c "cat > /etc/systemd/system/corekeeperserver.service <<EOF
+            [Unit]
+            Description=Core Keeper server
+            After=network.target
+
+            [Service]
+            User=ck2
+            Group=ck2
+            WorkingDirectory=/home/ck2/corekeeperserver
+            ExecStart=/home/ck2/corekeeperserver/corekeeperserver start
+            ExecStop=/home/ck2/corekeeperserver/corekeeperserver stop
+            Restart=on-failure
+
+            [Install]
+            WantedBy=multi-user.target
+            EOF"
+
+            sudo systemctl enable corekeeperserver
+            sudo systemctl start corekeeperserver
+          EOF
+
+
+            # Switch to ck2 user
+            su -l ck2 << EOF
+            # Install LGSM
+            cd ~
+            wget https://raw.githubusercontent.com/GameServerManagers/LinuxGSM/master/lgsm.sh
+            chmod +x lgsm.sh
+            ./lgsm.sh install corekeeperserver
+
+            # Configure Core Keeper server
+            cd corekeeperserver
+            ./corekeeperserver config-lgsm
+
