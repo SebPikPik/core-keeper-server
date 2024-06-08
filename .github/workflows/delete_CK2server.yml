@@ -1,0 +1,37 @@
+name: Core Keeper Server Delete
+
+on:
+  workflow_dispatch:
+
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete Core Keeper Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.ADMIN }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.ROOT_KEY }}
+          script: |
+            # Stop and disable Core Keeper systemd service
+            systemctl stop corekeeper.service
+            systemctl disable corekeeper.service
+
+            # Remove Core Keeper files and directory
+            rm -rf /home/ck2/CoreKeeper
+
+            # Remove LGSM files and directory
+            rm -rf /home/ck2/lgsm
+
+            # Remove Grafana agent
+            systemctl stop grafana-agent
+            systemctl disable grafana-agent
+            apt-get remove -y grafana-agent
+
+            # Remove ck2 user and home directory
+            userdel -r ck2
+
+            # Remove ufw firewall rules
+            ufw delete allow 26900/tcp
