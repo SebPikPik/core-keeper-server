@@ -1,4 +1,4 @@
-name: Core Keeper Server Setup CK2
+name: FREEBOX_HOST Core Keeper Server Setup CK2
 
 on:
   workflow_dispatch:
