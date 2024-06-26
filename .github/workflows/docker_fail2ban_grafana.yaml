@@ -1,0 +1,118 @@
+name: Install Grafana Cloud Agents and Fail2Ban on Remote Server
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - name: Set up SSH key
+      uses: appleboy/ssh-action@master
+      with:
+        host: your_remote_server
+        username: your_username
+        key: ${{ secrets.SSH_KEY }}
+        port: your_ssh_port
+
+    - name: Set up service account token
+      env:
+        GRAFANA_API_KEY: ${{ secrets.GRAFANA_API_KEY }}
+      run: |
+        echo "GRAFANA_API_KEY=$GRAFANA_API_KEY" >> $GITHUB_ENV
+
+    - name: Create Grafana Agent configuration
+      uses: appleboy/ssh-action@master
+      with:
+        host: your_remote_server
+        username: your_username
+        key: ${{ secrets.SSH_KEY }}
+        port: your_ssh_port
+        script: |
+          sudo tee /etc/grafana-agent/grafana-agent.yaml <<EOF
+          api_url: https://your-grafana-cloud-url.com/api
+          instance_name: ${{ github.repository }}
+          prometheus_url: http://localhost:9090
+          distributed_tracing:
+            jaeger:
+              url: http://localhost:14268/api/traces
+          logs:
+            configs:
+            - name: system
+              paths:
+                - /var/log/*.log
+              service: loki
+              labels:
+                job: ubuntu-system
+            - name: docker
+              paths:
+                - /var/lib/docker/containers/*/*-json.log
+              service: loki
+              labels:
+                job: docker
+          EOF
+
+    - name: Install Grafana Cloud Agents
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.ADMIN }}
+        port: ${{ secrets.PORT }}
+        key: ${{ secrets.ROOT_KEY }}
+        script: |
+          curl -s https://raw.githubusercontent.com/grafana/grafana-agent/main/install.sh | sudo sh
+          sudo systemctl start grafana-agent
+          sudo grafana-agent config apply --config /etc/grafana-agent/grafana-agent.yaml
+
+    - name: Install Docker
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.ADMIN }}
+        port: ${{ secrets.PORT }}
+        key: ${{ secrets.ROOT_KEY }}
+        script: |
+            apt update -y
+            apt install -y ca-certificates curl
+            install -m 0755 -d /etc/apt/keyrings
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+            chmod a+r /etc/apt/keyrings/docker.asc
+            echo \
+            "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+            $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+            tee /etc/apt/sources.list.d/docker.list > /dev/null
+            apt update -y
+            apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+    - name: Install UFW
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.ADMIN }}
+        port: ${{ secrets.PORT }}
+        key: ${{ secrets.ROOT_KEY }}
+        script: |
+            apt install -y ufw netdata
+            ufw default deny incoming
+            ufw default allow outgoing
+            ufw allow 10022
+            ufw allow 1234/tcp
+            ufw allow 1234/udp
+            ufw allow https
+            ufw allow from 88.169.78.137
+            ufw enable
+
+    - name: Install Fail2Ban
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.ADMIN }}
+        port: ${{ secrets.PORT }}
+        key: ${{ secrets.ROOT_KEY }}
+        script: |
+          apt-get update
+          apt-get install -y fail2ban
+          systemctl start fail2ban
+          systemctl enable fail2ban

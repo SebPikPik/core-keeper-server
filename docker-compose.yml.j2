@@ -1,0 +1,12 @@
+version: '3.4'
+services:
+  linuxgsm-ck:
+    image: gameservermanagers/gameserver:ck
+    # image: ghcr.io/gameservermanagers/gameserver:ck
+    container_name: ckserver
+    volumes:
+      - /path/to/ckserver:/data
+    ports:
+      - "3234:1234/tcp"
+      - "3234:1234/udp"
+    restart: unless-stopped
