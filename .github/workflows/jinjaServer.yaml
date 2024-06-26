@@ -1,9 +1,6 @@
 name: Core Keeper Server Setup CK2
 
 on:
-  push:
-    branches:
-      - newServer
   workflow_dispatch:
 env:
   API_KEY: ${{ secrets.GRAFANA_API_KEY }}
