@@ -9,7 +9,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-    - name: Setup Core Keeper Server
+    - name: FREEBOX_HOST Core Keeper Server Setup CK2
       uses: appleboy/ssh-action@master
       env:
         API_KEY: ${{ env.API_KEY }}
